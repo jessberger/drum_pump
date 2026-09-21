@@ -23,9 +23,10 @@ const containerImages: Record<string, StaticImageData> = {
 type ContainerSelectorProps = {
   value: Container | null;
   onChange: (container: Container) => void;
+  disabled?: boolean;
 };
 
-export default function ContainerSelector({ value, onChange }: ContainerSelectorProps) {
+export default function ContainerSelector({ value, onChange, disabled = false }: ContainerSelectorProps) {
   const [containers, setContainers] = useState<Container[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -83,8 +84,9 @@ export default function ContainerSelector({ value, onChange }: ContainerSelector
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
+        disabled={disabled}
         onClick={() => setOpen((current) => !current)}
-        className="flex min-h-20 w-full items-center gap-4 rounded-[3px] border border-black/15 bg-white px-4 py-3 text-left outline-none transition hover:border-black/30 focus:border-[#cc2027] focus:ring-4 focus:ring-[#cc2027]/10"
+        className="flex min-h-20 w-full items-center gap-4 rounded-[3px] border border-black/15 bg-white px-4 py-3 text-left outline-none transition hover:border-black/30 focus:border-[#cc2027] focus:ring-4 focus:ring-[#cc2027]/10 disabled:cursor-not-allowed disabled:border-black/8 disabled:bg-[#eceeeb] disabled:opacity-60"
       >
         <span className="relative flex h-14 w-16 shrink-0 items-center justify-center rounded-[2px] bg-[#f4f5f3]">
           {selectedImage ? (

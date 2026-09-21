@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geist.variable} antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${geist.variable} antialiased`}>
       <body>{children}</body>
     </html>
   );
