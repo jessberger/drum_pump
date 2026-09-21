@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import type { Container } from "@/types/selector";
-import ContainerSelector from "./ContainerSelector";
+import ContainerCards from "./ContainerCards";
 
 type TubeMaterial = "PP" | "PVDF" | "ALU" | "SS";
 type ShaftMaterial = "Hastelloy" | "SS";
@@ -89,7 +89,22 @@ function OptionButton<T extends string>({ label, selected, enabled, onSelect }: 
   );
 }
 
+function ContinueButton({ children, disabled = false, onClick }: { children: React.ReactNode; disabled?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="mt-5 inline-flex h-11 items-center justify-center gap-3 rounded-[3px] bg-[#cc2027] px-6 text-sm font-semibold text-white transition hover:bg-[#ad171d] disabled:cursor-not-allowed disabled:bg-[#cfd3d0] disabled:text-[#8a9391]"
+    >
+      {children}
+      <span aria-hidden="true">→</span>
+    </button>
+  );
+}
+
 export default function DrumPumpConfigurator() {
+  const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [atex, setAtex] = useState(false);
   const [food, setFood] = useState(false);
   const [tube, setTube] = useState<TubeMaterial | null>(null);
@@ -111,29 +126,36 @@ export default function DrumPumpConfigurator() {
       setTube(null);
       setShaft(null);
       setSeal(null);
+      setContainer(null);
       return;
     }
 
     setSeal(null);
+    setContainer(null);
   };
 
   const selectTube = (nextTube: TubeMaterial) => {
     setTube(nextTube);
     setShaft(null);
     setSeal(null);
+    setContainer(null);
   };
 
   const selectShaft = (nextShaft: ShaftMaterial) => {
     setShaft(nextShaft);
     setSeal(null);
+    setContainer(null);
   };
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <section className="rounded-[4px] border border-black/10 bg-[#f0f2ef] p-4 sm:p-5">
-        <div className="mb-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#cc2027]">Application requirements</p>
-          <h2 className="mt-1.5 text-lg font-semibold tracking-[-0.02em] text-[#1f2b29]">Safety and hygiene</h2>
+        <div className="mb-4 flex items-start gap-3">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0876b9] text-xs font-bold text-white">1</span>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#cc2027]">Application requirements</p>
+            <h2 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[#1f2b29]">Safety and hygiene</h2>
+          </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <BinaryToggle label="ATEX required?" value={atex} onChange={changeAtex} />
@@ -142,85 +164,99 @@ export default function DrumPumpConfigurator() {
         {atex ? (
           <p className="mt-3 text-xs leading-5 text-[#667270]">ATEX applications require an SS pump tube and Carbon (ATEX) seal.</p>
         ) : null}
+        {stage === 1 ? <ContinueButton onClick={() => setStage(2)}>Continue to materials</ContinueButton> : null}
       </section>
 
-      <section className="rounded-[4px] border border-black/10 bg-white p-4 sm:p-6">
-        <div className="grid gap-7 lg:grid-cols-3 lg:gap-5">
-          <div>
-            <div className="mb-4 flex items-start gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0876b9] text-xs font-bold text-white">1</span>
-              <div>
-                <h3 className="text-sm font-semibold text-[#1f2b29]">Pump tube</h3>
+      {stage >= 2 ? (
+        <section className="rounded-[4px] border border-black/10 bg-white p-4 sm:p-6">
+          <div className="mb-6 flex items-start gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0876b9] text-xs font-bold text-white">2</span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#cc2027]">Material configuration</p>
+              <h2 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[#1f2b29]">Pump materials</h2>
+            </div>
+          </div>
+
+          <div className="grid gap-7 lg:grid-cols-3 lg:gap-5">
+            <div>
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-[#1f2b29]">A. Pump tube</h3>
                 <p className="mt-0.5 text-xs leading-5 text-[#74807e]">Inner tube, outer tube, pump foot and discharge</p>
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                {tubeOptions.map((option) => (
+                  <OptionButton
+                    key={option}
+                    label={option}
+                    selected={tube === option}
+                    enabled={!atex || option === "SS"}
+                    onSelect={selectTube}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {tubeOptions.map((option) => (
-                <OptionButton
-                  key={option}
-                  label={option}
-                  selected={tube === option}
-                  enabled={!atex || option === "SS"}
-                  onSelect={selectTube}
-                />
-              ))}
-            </div>
-          </div>
 
-          <div>
-            <div className="mb-4 flex items-start gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0876b9] text-xs font-bold text-white">2</span>
-              <div>
-                <h3 className="text-sm font-semibold text-[#1f2b29]">Drive shaft</h3>
+            <div>
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-[#1f2b29]">B. Drive shaft</h3>
                 <p className="mt-0.5 text-xs leading-5 text-[#74807e]">Select a compatible shaft material</p>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-              {shaftOptions.map((option) => (
-                <OptionButton
-                  key={option}
-                  label={option}
-                  selected={shaft === option}
-                  enabled={Boolean(tube && allowedShafts.includes(option))}
-                  onSelect={selectShaft}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-4 flex items-start gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0876b9] text-xs font-bold text-white">3</span>
-              <div>
-                <h3 className="text-sm font-semibold text-[#1f2b29]">V-Seal</h3>
-                <p className="mt-0.5 text-xs leading-5 text-[#74807e]">Choose the seal for this configuration</p>
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                {shaftOptions.map((option) => (
+                  <OptionButton
+                    key={option}
+                    label={option}
+                    selected={shaft === option}
+                    enabled={Boolean(tube && allowedShafts.includes(option))}
+                    onSelect={selectShaft}
+                  />
+                ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-              {sealOptions.map((option) => (
-                <OptionButton
-                  key={option}
-                  label={option}
-                  selected={seal === option}
-                  enabled={Boolean(shaft && allowedSeals.includes(option))}
-                  onSelect={setSeal}
-                />
-              ))}
+
+            <div>
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-[#1f2b29]">C. V-Seal</h3>
+                <p className="mt-0.5 text-xs leading-5 text-[#74807e]">Choose the seal for this configuration</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                {sealOptions.map((option) => (
+                  <OptionButton
+                    key={option}
+                    label={option}
+                    selected={seal === option}
+                    enabled={Boolean(shaft && allowedSeals.includes(option))}
+                    onSelect={(nextSeal) => {
+                      setSeal(nextSeal);
+                      setContainer(null);
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className={`rounded-[4px] border border-black/10 bg-[#f0f2ef] p-4 transition sm:p-6 ${seal ? "" : "opacity-65"}`}>
-        <div className="mb-4 flex items-center gap-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0876b9] text-xs font-bold text-white">4</span>
-          <div>
-            <h2 className="text-sm font-semibold text-[#1f2b29]">Container size</h2>
-            <p className="mt-0.5 text-xs text-[#74807e]">Select the container you are pumping from</p>
+          {stage === 2 ? (
+            <ContinueButton disabled={!tube || !shaft || !seal} onClick={() => setStage(3)}>
+              Continue to containers
+            </ContinueButton>
+          ) : null}
+        </section>
+      ) : null}
+
+      {stage >= 3 ? (
+        <section className="rounded-[4px] border border-black/10 bg-[#f0f2ef] p-4 sm:p-6">
+          <div className="mb-5 flex items-start gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0876b9] text-xs font-bold text-white">3</span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#cc2027]">Container selection</p>
+              <h2 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[#1f2b29]">Choose the container size</h2>
+              <p className="mt-1 text-xs text-[#74807e]">Select the container you are pumping from.</p>
+            </div>
           </div>
-        </div>
-        <ContainerSelector value={container} onChange={setContainer} disabled={!seal} />
-      </section>
+          <ContainerCards value={container} onChange={setContainer} />
+        </section>
+      ) : null}
 
       {tube && shaft && seal && container ? (
         <section className="rounded-[4px] border border-[#cc2027]/20 bg-[#fff8f8] p-5">
